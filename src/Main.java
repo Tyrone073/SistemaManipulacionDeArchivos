@@ -76,13 +76,29 @@ public class Main {
             }else {
 
                 Contenido contenido = new Contenido("Hola este es un archivo tipo ." + extension + " creado en java");
-                PrintWriter out = new PrintWriter(archivo);
-                String serealizar = serealizarADocx(contenido);
-                out.write(serealizar);
-//                out.println( "Archivo creado en la fecha: " + contenido.getFechaActual());
-//                out.write(contenido.getMensaje());
-                out.flush();
-                out.close();
+
+                switch (extension) {
+                    case "txt":
+                        PrintWriter out = new PrintWriter(archivo);
+                        out.println( "Archivo creado en la fecha: " + contenido.getFechaActual());
+                        out.write(contenido.getMensaje());
+                        out.flush();
+                        out.close();
+                        System.out.println("Archivo txt creado exitosamente.");
+                        break;
+                    case "docx":
+                        ControllerOffice.crearDocx(nombre, contenido);
+                        System.out.println("Archivo docx creado exitosamente.");
+                        break;
+                    case "pptx":
+                        ControllerOffice.crearPptx(nombre, contenido);
+                        System.out.println("Archivo pptx creado exitosamente.");
+                        break;
+                    case "xlsx":
+                        ControllerOffice.crearXlsx(nombre, contenido);
+                        System.out.println("Archivo xlsx creado exitosamente.");
+                        break;
+                }
 
                 System.out.println("Archivo creado exitosamente.");
                 System.out.println("su ubucacion es:"+ archivo.getAbsolutePath());
@@ -163,29 +179,4 @@ public class Main {
         }
     }
 
-    public static String serealizarADocx(Contenido contenido)  {
-        String xmlContent = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
-                "<w:document xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\">\n" +
-                "   <w:hdr xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\">\n" +
-                "       <w:p>\n" +
-                "           <w:r>\n" +
-                "               <w:t>" + contenido.getFechaActual() + "</w:t>\n" +
-                "           </w:r>\n" +
-                "       </w:p>\n" +
-                "   </w:hdr>\n" +
-                "   <w:body>\n" +
-                "       <w:p>\n" +
-                "           <w:r>\n" +
-                "               <w:t>" + contenido.getMensaje() + "</w:t>\n" +
-                "           </w:r>\n" +
-                "       </w:p>\n" +
-                "       <w:sectPr>\n" +
-                "           <w:headerReference w:type=\"default\" r:id=\"rId1\" />\n" +
-                "           <w:footerReference w:type=\"default\" r:id=\"rId2\" />\n" +
-                "           <w:pgSz w:w=\"12240\" w:h=\"15840\" />\n" +  // Tamaño A4
-                "       </w:sectPr>\n" +
-                "   </w:body>\n" +
-                "</w:document>";
-        return xmlContent;
-    }
 }

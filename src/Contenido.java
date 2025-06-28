@@ -1,3 +1,4 @@
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class Contenido {
@@ -9,9 +10,11 @@ public class Contenido {
         this.mensaje = mensaje;
     }
 
-    public Date getFechaActual() {
-        return fechaActual;
+    public String getFechaActual() {
+        SimpleDateFormat formato = new SimpleDateFormat("EEEE, d 'de' MMMM 'de' yyyy");
+        return formato.format(fechaActual);
     }
+
     public String getMensaje() {
         return mensaje;
     }
