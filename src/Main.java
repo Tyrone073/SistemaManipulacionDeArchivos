@@ -44,9 +44,7 @@ public class Main {
                 "\n2. docx" +
                 "\n3. pptx" +
                 "\n4. xlsx" +
-                "\n5. json" +
-                "\n6. pdf" +
-                "\n7. xml");
+                "\n5. xml");
 
         int tipo = System.in.read();
         scanner.nextLine();
@@ -55,9 +53,7 @@ public class Main {
             case '2' -> "docx";
             case '3' -> "pptx";
             case '4' -> "xlsx";
-            case '5' -> "json";
-            case '6' -> "pdf";
-            case '7' -> "xml";
+            case '5' -> "xml";
             default -> null;
         };
 
@@ -80,7 +76,7 @@ public class Main {
                 switch (extension) {
                     case "txt":
                         PrintWriter out = new PrintWriter(archivo);
-                        out.println( "Archivo creado en la fecha: " + contenido.getFechaActual());
+                        out.println("Archivo creado en la fecha: " + contenido.getFechaActual());
                         out.write(contenido.getMensaje());
                         out.flush();
                         out.close();
@@ -112,27 +108,35 @@ public class Main {
 
     }
 
-    public static void leerArchivo() {
-        System.out.print("Ingrese el nombre del archivo a leer (sin extensión): ");
+    public static void leerArchivo() throws IOException {
+        System.out.println("--- Listado de archivos ---");
+        listarArchivosFiltrados();
+        System.out.print("Ingrese el nombre del archivo con su extension: ");
         String nombre = scanner.nextLine();
-        System.out.print("Ingrese la extensión del archivo (ej: txt): ");
-        String extension = scanner.nextLine();
-        File archivo = new File(nombre + "." + extension);
+        File archivo = new File(nombre);
 
         if (!archivo.exists()) {
             System.out.println("El archivo no existe.");
-            return;
-        }
-
-        try (BufferedReader br = new BufferedReader(new FileReader(archivo))) {
-            String linea;
+        }else {
             System.out.println("\n--- Contenido del archivo ---");
-            while ((linea = br.readLine()) != null) {
-                System.out.println(linea);
+            switch (archivo.getName().substring(archivo.getName().lastIndexOf(".") + 1)){
+                case "txt":
+                    System.out.println("Archivo txt.");
+                    FileReader fileR = new FileReader(nombre);
+                    BufferedReader bR = new BufferedReader(fileR);
+                    System.out.println(bR.readLine());
+                    bR.close();
+                    break;
+                case "docx":
+                    System.out.println("Archivo docx.");
+                    String contenidoDocx = ControllerOffice.leerArchivo(nombre);
+                    System.out.println(contenidoDocx.replaceAll("<[^>]+>", "")
+                    );
+                    break;
+                case "pptx":
+                    System.out.println("Archivo pptx.");
+                    break;
             }
-            System.out.println("--- Fin del archivo ---");
-        } catch (IOException e) {
-            System.out.println("Error al leer el archivo: " + e.getMessage());
         }
     }
 
@@ -176,6 +180,30 @@ public class Main {
             }
         } else {
             System.out.println("El archivo no existe.");
+        }
+    }
+
+
+    public static void listarArchivosFiltrados() {
+        File directorio = new File(".");
+        String[] extensionesPermitidas = {"txt", "docx", "pptx", "xlsx", "xml"};
+
+        String[] archivos = directorio.list((dir, nombreArchivo) -> {
+            for (String ext : extensionesPermitidas) {
+                if (nombreArchivo.toLowerCase().endsWith("." + ext)) {
+                    return true;
+                }
+            }
+            return false;
+        });
+
+        if (archivos != null && archivos.length > 0) {
+            System.out.println("Archivos encontrados en el directorio:");
+            for (String archivo : archivos) {
+                System.out.println(archivo);
+            }
+        } else {
+            System.out.println("No hay archivos en el directorio.");
         }
     }
 
