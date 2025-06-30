@@ -1,6 +1,4 @@
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -35,7 +33,7 @@ public class ControllerOffice {
             agregarAlZip(zos, "word/_rels/document.xml.rels", documentRels);
         }
     }
-    public static String leerArchivo(String nombreArchivo) {
+    public static String leerArchivoOffice(String nombreArchivo) {
         try {
             FileInputStream fis = new FileInputStream(nombreArchivo);
             ZipInputStream zis = new ZipInputStream(fis);
@@ -70,6 +68,24 @@ public class ControllerOffice {
             throw new RuntimeException(e);
         }
     }
+    public static String leerArchivo(String nombreArchivo) throws IOException {
+
+        FileReader fileR = new FileReader(nombreArchivo);
+        BufferedReader bR = new BufferedReader(fileR);
+        String linea;
+
+        List<String> contenido = new ArrayList<>();
+
+        while ((linea = bR.readLine()) != null) {
+            String ad = new String(linea.getBytes(), caracteres).replaceAll("<[^>]+>", "").trim();
+            if (!ad.isEmpty()) {
+                contenido.add(ad);
+            }
+        }
+        fileR.close();
+        bR.close();
+        return String.join("\n", contenido);
+    }
 
 
     /* === XLSX === */
@@ -98,6 +114,34 @@ public class ControllerOffice {
             agregarAlZip(zos, "ppt/presentation.xml", generarPresentationXml(contenido).getBytes(caracteres));
         }
     }
+
+//    public static void crearXml(String nombreArchivo, Contenido contenido) throws IOException {
+//        String formato = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+//                "<documento tipo=\"mensaje\">\n" +
+//                "  <contenido>\n" +
+//                "    <texto>" + escapeXml(contenido.getMensaje()) + "</texto>\n" +
+//                "    <fecha>" + escapeXml(contenido.getFechaActual()) + "</fecha>\n" +
+//                "  </contenido>\n" +
+//                "</documento>";
+//
+//        try (FileOutputStream fos = new FileOutputStream(nombreArchivo + ".xml")) {
+//            fos.write(formato.getBytes(caracteres));
+//        }
+//    }
+public static void crearSvg(String nombreArchivo, Contenido contenido) throws IOException {
+    String svg = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+            "<svg width=\"600\" height=\"850\" xmlns=\"http://www.w3.org/2000/svg\">\n" +
+            "  <rect width=\"600\" height=\"850\" fill=\"#ffffff\"/>\n" +
+            "  <text x=\"70\" y=\"50\" font-family=\"Arial\" font-size=\"12\" fill=\"gray\">" + "Creado el " + escapeXml(contenido.getFechaActual()) + "</text>\n" +
+            "  <text x=\"70\" y=\"80\" font-family=\"Arial\" font-size=\"12\" fill=\"black\">" + escapeXml(contenido.getMensaje()) + "</text>\n" +
+
+            "</svg>";
+
+    try (FileOutputStream fos = new FileOutputStream(nombreArchivo + ".svg")) {
+        fos.write(svg.getBytes(caracteres));
+    }
+}
+
 
     private static String generarPresentationXml(Contenido contenido) {
         return "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" +

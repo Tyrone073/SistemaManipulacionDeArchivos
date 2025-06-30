@@ -7,10 +7,10 @@ public class Main {
     public static void main(String[] args) throws IOException {
         int opcion;
         do {
-            System.out.println("\nSistema de procesamiento de archivos");
+            System.out.println("\n====Sistema de procesamiento de archivos====");
             System.out.println("1. Crear archivo");
             System.out.println("2. Leer archivo");
-            System.out.println("3. Modificar archivo");
+            System.out.println("3. Contar palabras de un archivo");
             System.out.println("4. Eliminar archivo");
             System.out.println("0. Salir");
             System.out.print("Ingrese una opción: ");
@@ -24,7 +24,7 @@ public class Main {
                     leerArchivo();
                     break;
                 case 3:
-                    modificarArchivo();
+                    ContarPalabrasArchivoYPasarloATxt();
                     break;
                 case 4:
                     eliminarArchivo();
@@ -44,7 +44,7 @@ public class Main {
                 "\n2. docx" +
                 "\n3. pptx" +
                 "\n4. xlsx" +
-                "\n5. xml");
+                "\n5. svg");
 
         int tipo = System.in.read();
         scanner.nextLine();
@@ -53,7 +53,7 @@ public class Main {
             case '2' -> "docx";
             case '3' -> "pptx";
             case '4' -> "xlsx";
-            case '5' -> "xml";
+            case '5' -> "svg";
             default -> null;
         };
 
@@ -68,7 +68,6 @@ public class Main {
         try{
             if (archivo.exists()) {
                 System.out.println("El archivo ya existe.");
-                return;
             }else {
 
                 Contenido contenido = new Contenido("Hola este es un archivo tipo ." + extension + " creado en java");
@@ -76,7 +75,7 @@ public class Main {
                 switch (extension) {
                     case "txt":
                         PrintWriter out = new PrintWriter(archivo);
-                        out.println("Archivo creado en la fecha: " + contenido.getFechaActual());
+                        out.println("Creado el " + contenido.getFechaActual());
                         out.write(contenido.getMensaje());
                         out.flush();
                         out.close();
@@ -94,6 +93,9 @@ public class Main {
                         ControllerOffice.crearXlsx(nombre, contenido);
                         System.out.println("Archivo xlsx creado exitosamente.");
                         break;
+                    case "svg":
+                        ControllerOffice.crearSvg(nombre, contenido);
+                        System.out.println("Archivo svg creado exitosamente.");
                 }
 
                 System.out.println("Archivo creado exitosamente.");
@@ -118,59 +120,64 @@ public class Main {
         if (!archivo.exists()) {
             System.out.println("El archivo no existe.");
         }else {
-            System.out.println("\n--- Contenido del archivo ---");
-            switch (archivo.getName().substring(archivo.getName().lastIndexOf(".") + 1)){
-                case "txt":
-                    System.out.println("Archivo txt.");
-                    FileReader fileR = new FileReader(nombre);
-                    BufferedReader bR = new BufferedReader(fileR);
-                    System.out.println(bR.readLine());
-                    bR.close();
-                    break;
-                case "docx":
-                    System.out.println("Archivo docx.");
-                    String contenidoDocx = ControllerOffice.leerArchivo(nombre);
-                    System.out.println(contenidoDocx.replaceAll("<[^>]+>", "")
-                    );
-                    break;
-                case "pptx":
-                    System.out.println("Archivo pptx.");
-                    break;
+            if (nombre.endsWith(".docx") || nombre.endsWith(".pptx") || nombre.endsWith(".xlsx")){
+                String contenidoOffi = ControllerOffice.leerArchivoOffice(nombre);
+                System.out.println(contenidoOffi);
+                return;
+            }else if (nombre.endsWith(".svg") || nombre.endsWith(".txt")){
+                String contenidoNormal = ControllerOffice.leerArchivo(nombre);
+                System.out.println(contenidoNormal);
+            }else {
+                System.out.println("El archivo no es compatible.");
             }
         }
     }
 
-    public static void modificarArchivo() {
-        System.out.print("Ingrese el nombre del archivo a modificar (sin extensión): ");
+    public static void ContarPalabrasArchivoYPasarloATxt() throws IOException {
+        System.out.println("--- Listado de archivos ---");
+        listarArchivosFiltrados();
+        System.out.print("Ingrese el nombre del archivo con su extension: ");
         String nombre = scanner.nextLine();
-        System.out.print("Ingrese la extensión del archivo (ej: txt): ");
-        String extension = scanner.nextLine();
-        File archivo = new File(nombre + "." + extension);
+        File archivo = new File(nombre);
+        String nPalabras = "";
 
-        if (!archivo.exists()) {
+        if (archivo.exists()) {
+            if (nombre.endsWith(".docx") || nombre.endsWith(".pptx") || nombre.endsWith(".xlsx")){
+                nPalabras = "Este archivo tiene "+ ControllerOffice.leerArchivoOffice(nombre).split("\\W+").length + " palabras.";
+                System.out.println(nPalabras);
+
+            }else if (nombre.endsWith(".svg") || nombre.endsWith(".txt")){
+                nPalabras = "Este archivo tiene "+ ControllerOffice.leerArchivo(nombre).split("\\W+").length + " palabras.";
+                System.out.println(nPalabras);
+
+            }else {
+                System.out.println("El archivo no es compatible.");
+            }
+            
+            File conteo = new File("PalabrasDe-"+ nombre+"-A.txt");
+            System.out.println("Se agrega el conteo de palabras al archivo: "+ conteo);
+
+            try {
+                PrintWriter out = new PrintWriter(conteo);
+                out.println("Archivo txt de conteo de palabras del archivo: " + nombre);
+                out.println(nPalabras);
+                out.flush();
+                out.close();
+                System.out.println("Conteo de palabras agregado exitosamente.");
+            } catch (FileNotFoundException e) {
+                System.out.println("Error al escribir en el archivo: " + e.getMessage());
+            }
+        }else {
             System.out.println("El archivo no existe.");
-            return;
-        }
-
-        System.out.print("Escribe el nuevo mensaje a agregar: ");
-        String mensaje = scanner.nextLine();
-        Contenido contenido = new Contenido(mensaje);
-
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(archivo, true))) {
-            bw.newLine();
-            bw.write(contenido.mensaje);
-            System.out.println("Mensaje agregado exitosamente.");
-        } catch (IOException e) {
-            System.out.println("Error al escribir en el archivo: " + e.getMessage());
         }
     }
 
     public static void eliminarArchivo() {
-        System.out.print("Ingrese el nombre del archivo a eliminar (sin extensión): ");
+        System.out.println("\n--- Listado de archivos ---");
+        listarArchivosFiltrados();
+        System.out.print("Ingrese el nombre del archivo con su extension: ");
         String nombre = scanner.nextLine();
-        System.out.print("Ingrese la extensión del archivo (ej: txt): ");
-        String extension = scanner.nextLine();
-        File archivo = new File(nombre + "." + extension);
+        File archivo = new File(nombre);
 
         if (archivo.exists()) {
             if (archivo.delete()) {
@@ -186,7 +193,7 @@ public class Main {
 
     public static void listarArchivosFiltrados() {
         File directorio = new File(".");
-        String[] extensionesPermitidas = {"txt", "docx", "pptx", "xlsx", "xml"};
+        String[] extensionesPermitidas = {"txt", "docx", "pptx", "xlsx", "svg"};
 
         String[] archivos = directorio.list((dir, nombreArchivo) -> {
             for (String ext : extensionesPermitidas) {
